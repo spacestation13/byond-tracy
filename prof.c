@@ -3130,7 +3130,7 @@ char *UTRACY_WINDOWS_CDECL UTRACY_LINUX_CDECL init(int argc, char **argv) {
 	}
 
 #elif defined(UTRACY_LINUX)
-	struct link_map *libbyond = dlopen("libbyond.so", RTLD_NOLOAD);
+	struct link_map *libbyond = dlopen("libbyond.so", (RTLD_NOW | RTLD_NOLOAD));
 	if(NULL == libbyond) {
 		LOG_DEBUG_ERROR;
 		return "unable to find base address of libbyond.so";
