@@ -1625,6 +1625,8 @@ long long unix_timestamp(void) {
 #define UTRACY_PROTOCOL_0_8_2 (57)
 #define UTRACY_PROTOCOL_0_9_0 (63)
 #define UTRACY_PROTOCOL_0_10_0 (64)
+#define UTRACY_PROTOCOL_0_11_0 (66)
+#define UTRACY_PROTOCOL_0_11_1 (69)
 
 #define UTRACY_EVT_ZONEBEGIN (15)
 #define UTRACY_EVT_ZONEEND (17)
@@ -1897,6 +1899,56 @@ int utracy_protocol_init(int unsigned version) {
 			utracy.protocol.query_thread_string = 2;
 			utracy.protocol.query_source_location = 3;
 			utracy.protocol.query_disconnect = 8;
+			utracy.protocol.query_symbol_code = 12;
+			utracy.protocol.query_source_code = 13;
+			utracy.protocol.query_data_transfer = 14;
+			utracy.protocol.query_data_transfer_part = 15;
+			break;
+
+		case UTRACY_PROTOCOL_0_11_0:
+			utracy.protocol.zone_begin = 15;
+			utracy.protocol.zone_end = 17;
+			utracy.protocol.zone_color = 65;
+			utracy.protocol.thread_context = 59;
+			utracy.protocol.framemark = 67;
+
+			utracy.protocol.response_source_location = 71;
+			utracy.protocol.response_server_query_noop = 92;
+			utracy.protocol.response_source_code_unavail = 93;
+			utracy.protocol.response_symbol_code_unavail = 94;
+			utracy.protocol.response_string_data = 99;
+			utracy.protocol.response_thread_name = 100;
+
+			utracy.protocol.query_terminate = 0;
+			utracy.protocol.query_string = 1;
+			utracy.protocol.query_thread_string = 2;
+			utracy.protocol.query_source_location = 3;
+			utracy.protocol.query_disconnect = 9;
+			utracy.protocol.query_symbol_code = 12;
+			utracy.protocol.query_source_code = 13;
+			utracy.protocol.query_data_transfer = 14;
+			utracy.protocol.query_data_transfer_part = 15;
+			break;
+
+		case UTRACY_PROTOCOL_0_11_1:
+			utracy.protocol.zone_begin = 15;
+			utracy.protocol.zone_end = 17;
+			utracy.protocol.zone_color = 65;
+			utracy.protocol.thread_context = 59;
+			utracy.protocol.framemark = 67;
+
+			utracy.protocol.response_source_location = 71;
+			utracy.protocol.response_server_query_noop = 92;
+			utracy.protocol.response_source_code_unavail = 93;
+			utracy.protocol.response_symbol_code_unavail = 94;
+			utracy.protocol.response_string_data = 100;
+			utracy.protocol.response_thread_name = 101;
+
+			utracy.protocol.query_terminate = 0;
+			utracy.protocol.query_string = 1;
+			utracy.protocol.query_thread_string = 2;
+			utracy.protocol.query_source_location = 3;
+			utracy.protocol.query_disconnect = 9;
 			utracy.protocol.query_symbol_code = 12;
 			utracy.protocol.query_source_code = 13;
 			utracy.protocol.query_data_transfer = 14;
@@ -2284,7 +2336,9 @@ int utracy_write_source_code(int unsigned id) {
 			break;
 
 		case UTRACY_PROTOCOL_0_9_0:
-		case UTRACY_PROTOCOL_0_10_0:;
+		case UTRACY_PROTOCOL_0_10_0:
+		case UTRACY_PROTOCOL_0_11_0:
+		case UTRACY_PROTOCOL_0_11_1:;
 			struct network_response_source_code msg = {
 				.type = utracy.protocol.response_source_code_unavail,
 				.id = id
