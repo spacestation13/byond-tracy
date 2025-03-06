@@ -1,3 +1,5 @@
-# ignore any binaries
 prof.*
+libprof.*
 !prof.c
+/.vs
+/build
