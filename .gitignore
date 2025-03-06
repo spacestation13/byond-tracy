@@ -1,0 +1,3 @@
+# ignore any binaries
+prof.*
+!prof.c
