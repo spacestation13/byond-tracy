@@ -57,7 +57,7 @@ UTRACY_BIND_PORT
 
 ## building
 
-You can download a precompiled byond-tracy executable from the [Releases page](https://github.com/spacestation13/byond-tracy/releases).
+You can download a precompiled byond-tracy executable from the [latest release](https://github.com/spacestation13/byond-tracy/releases/latest).
 
 The Linux one is unlikely to work. No guarantee or warranty given for the binaries.
 
