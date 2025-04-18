@@ -5,70 +5,30 @@ byond-tracy glues together a byond server with the tracy profiler allowing you t
 ## supported byond versions
 | windows  | linux    |
 | -------- | -------- |
-| 515.1647 | 515.1647 |
-| 515.1646 | 515.1646 |
-| 515.1645 | 515.1645 |
-| 515.1644 | 515.1644 |
-| 515.1643 | 515.1643 |
-| 515.1642 | 515.1642 |
-| 515.1641 | 515.1641 |
-| 515.1640 | 515.1640 |
-| 515.1639 | 515.1639 |
-| 515.1638 | 515.1638 |
-| 515.1637 | 515.1637 |
-| 515.1636 | 515.1636 |
-| 515.1635 | 515.1635 |
-| 515.1634 | 515.1634 |
-| 515.1633 | 515.1633 |
-| 515.1632 | 515.1632 |
-| 515.1631 | 515.1631 |
-| 515.1630 | 515.1630 |
-| 515.1627 | 515.1627 |
-| 515.1626 | 515.1626 |
-| 515.1625 | 515.1625 |
-| 515.1624 | 515.1624 |
-| 515.1623 | 515.1623 |
-| 515.1622 | 515.1622 |
-| 515.1621 | 515.1621 |
-| 515.1620 | 515.1620 |
-| 515.1619 | 515.1619 |
-| 515.1618 | 515.1618 |
-| 515.1617 | 515.1617 |
-| 515.1616 | 515.1616 |
-| 515.1615 | 515.1615 |
-| 515.1614 | 515.1614 |
-| 515.1613 | 515.1613 |
-| 515.1612 |          |
-| 515.1611 | 515.1611 |
-| 515.1610 | 515.1610 |
-| 515.1609 | 515.1609 |
-| 515.1608 | 515.1608 |
-| 515.1607 | 515.1607 |
-| 515.1606 | 515.1606 |
-| 515.1605 | 515.1605 |
-| 515.1604 | 515.1604 |
-| 515.1603 | 515.1603 |
-| 515.1602 | 515.1602 |
-| 515.1601 | 515.1601 |
-| 515.1600 | 515.1600 |
-| 515.1599 | 515.1599 |
-| 515.1598 | 515.1598 |
-| 515.1597 | 515.1597 |
-| 515.1596 | 515.1596 |
-| 515.1595 | 515.1595 |
-| 515.1594 | 515.1594 |
-| 515.1593 | 515.1593 |
-| 515.1592 | 515.1592 |
-| 515.1591 | 515.1591 |
-| 515.1590 | 515.1590 |
-| 514.*    | 514.*    |
+| 516.1660 | 515.1660 |
+| 516.1659 | 515.1659 |
+| 516.1658 | 515.1658 |
+| 516.1657 | 515.1657 |
+| 516.1656 | 515.1656 |
+| 516.1655 | 515.1655 |
+| 516.1654 |   N/A    |
+| 516.1653 | 515.1653 |
+| 516.1652 | 515.1652 |
+| 516.1651 | 515.1651 |
+| 516.1650 | 515.1650 |
+| 516.1649 | 515.1649 |
+| 516.1648 | 515.1648 |
+| 515.* | 515.* |
+| 514.*| 515.* |
+
+*except `515.1612` on Linux as there was no release*
 
 ## supported tracy versions
 `0.8.1` `0.8.2` `0.9.0` `0.9.1` `0.10.0` `0.11.0` `0.11.1`
 
 ## usage
 simply call `init` from `prof.dll` to begin collecting profile data and connect using [tracy-server](https://github.com/wolfpld/tracy/releases) `Tracy.exe`
-```dm
+```ts
 /proc/prof_init()
 	var/lib
 
@@ -87,29 +47,30 @@ simply call `init` from `prof.dll` to begin collecting profile data and connect 
 
 ## env vars
 set these env vars before launching dreamdaemon to control which node and service to bind
-```console
+```sh
 UTRACY_BIND_ADDRESS
 ```
 
-```console
+```sh
 UTRACY_BIND_PORT
 ```
 
 ## building
 
 You can download a precompiled byond-tracy executable from the [Releases page](https://github.com/spacestation13/byond-tracy/releases).
-The Linux one is unlikely to work. No guarantees on these.
+
+The Linux one is unlikely to work. No guarantee or warranty given for the binaries.
 
 no build system included, simply invoke your preferred c11 compiler.
 examples:
-```console
+```sh
 cl.exe /nologo /std:c11 /O2 /LD /DNDEBUG prof.c ws2_32.lib /Fe:prof.dll
 ```
 
-```console
+```sh
 clang.exe -std=c11 -m32 -shared -Ofast3 -DNDEBUG -fuse-ld=lld-link prof.c -lws2_32 -o prof.dll
 ```
 
-```console
+```sh
 gcc -std=c11 -m32 -shared -fPIC -Ofast -s -DNDEBUG prof.c -pthread -o libprof.so
 ```

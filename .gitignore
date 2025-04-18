@@ -1,2 +1,5 @@
 prof.*
+libprof.*
 !prof.c
+/.vs
+/build
