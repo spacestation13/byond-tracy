@@ -1,6 +1,7 @@
 ## byond-tracy
 byond-tracy glues together a byond server with the tracy profiler allowing you to analyze and visualize proc calls
 
+
 ## supported byond versions
 | windows  | linux    |
 | -------- | -------- |
@@ -95,6 +96,10 @@ UTRACY_BIND_PORT
 ```
 
 ## building
+
+You can download a precompiled byond-tracy executable from the [Releases page](https://github.com/spacestation13/byond-tracy/releases).
+The Linux one is unlikely to work. No guarantees on these.
+
 no build system included, simply invoke your preferred c11 compiler.
 examples:
 ```console
@@ -108,6 +113,3 @@ clang.exe -std=c11 -m32 -shared -Ofast3 -DNDEBUG -fuse-ld=lld-link prof.c -lws2_
 ```console
 gcc -std=c11 -m32 -shared -fPIC -Ofast -s -DNDEBUG prof.c -pthread -o libprof.so
 ```
-
-## remarks
-byond-tracy is in its infancy and is not production ready for live servers.
