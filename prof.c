@@ -2876,7 +2876,7 @@ void *hook(char *const restrict dst, char *const restrict src, char unsigned siz
 }
 
 #if defined(UTRACY_WINDOWS)
-#	define BYOND_MAX_BUILD 1660
+#	define BYOND_MAX_BUILD 1661
 #	define BYOND_MIN_BUILD 1543
 #	define BYOND_VERSION_ADJUSTED(a) ((a) - BYOND_MIN_BUILD)
 
@@ -3002,7 +3002,7 @@ static int unsigned const byond_offsets[][11] = {
 };
 
 #elif defined(UTRACY_LINUX)
-#	define BYOND_MAX_BUILD 1660
+#	define BYOND_MAX_BUILD 1661
 #	define BYOND_MIN_BUILD 1543
 #	define BYOND_VERSION_ADJUSTED(a) ((a) - BYOND_MIN_BUILD)
 
