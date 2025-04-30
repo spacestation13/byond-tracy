@@ -83,6 +83,6 @@ To add offsets (required for every new BYOND version), you can derive them using
 
 Just run the `Extract Signatures` GitHub Workflow, and pass in your version like `["515.1590","515.1591"]`.
 
-Ideally this just works perfectly. Go to the `Run extraction script` step and copy the offsets. It's already in copypaste form for the `byond_offsets` array in `prof.c`.
+Ideally this just works perfectly. Go to the `Run extraction script` step and copy the offsets. It's already in copypaste form for the `offsets/` headers.
 
 Then just PR it and maybe ping ZeWaka in #tooling-questions to merge it.
