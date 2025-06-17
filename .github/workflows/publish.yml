@@ -58,6 +58,13 @@ jobs:
       - name: Get Short Git Hash
         id: git_hash
         run: echo "hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Get Latest Supported BYOND Version
+        id: byond_version
+        run: |
+          # Extract the 3rd field from "#define BYOND_MAX_BUILD 1337" using space as delimiter
+          max_build=$(grep "BYOND_MAX_BUILD" offsets/windows.h | cut -d' ' -f3)
+          echo "version=$max_build" >> $GITHUB_OUTPUT
         
       - uses: actions/download-artifact@v4
       
@@ -69,7 +76,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ steps.git_hash.outputs.hash }}
-          name: Build ${{ steps.git_hash.outputs.hash }}
+          name: ${{ steps.byond_version.outputs.version }} (build ${{ steps.git_hash.outputs.hash }})
           files: |
             windows-dll/prof.dll
             linux-so/libprof.so
