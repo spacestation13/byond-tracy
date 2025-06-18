@@ -5,8 +5,8 @@ byond-tracy glues together a byond server with the tracy profiler allowing you t
 ## supported byond versions
 | windows  | linux    |
 | -------- | -------- |
-| 516.1663 | 516.1664 |
-| 516.1664 | 516.1663 |
+| 516.1664 | 516.1664 |
+| 516.1663 | 516.1663 |
 | 516.1662 | 516.1662 |
 | 516.1661 | 516.1661 |
 | 516.1660 | 516.1660 |
@@ -63,7 +63,7 @@ UTRACY_BIND_PORT
 
 You can download a precompiled byond-tracy executable from the [latest release](https://github.com/spacestation13/byond-tracy/releases/latest).
 
-The Linux one is unlikely to work. No guarantee or warranty given for the binaries.
+The Linux one is unlikely to work on your system. No guarantee or warranty given for the binaries.
 
 no build system included, simply invoke your preferred c11 compiler.
 examples:
