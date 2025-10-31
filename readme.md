@@ -88,11 +88,9 @@ gcc -std=c11 -m32 -shared -fPIC -Ofast -s -DNDEBUG prof.c -pthread -o libprof.so
 
 ## developing
 
-To add offsets (required for every new BYOND version), you can derive them using https://github.com/Sovexe/byond-tracy-offset-extractor. 
+To add offsets (required for every new BYOND version), you find them here: https://sovexe.github.io/byond-tracy-offset-extractor/
 
-Just run the `Extract Signatures` GitHub Workflow, and pass in your version like `["515.1590","515.1591"]`.
-
-Ideally this just works perfectly. Go to the `Run extraction script` step and copy the offsets. It's already in copypaste form for the `offsets/` headers.
+It's already in copypaste form for the `offsets/` headers (non-experimental). Be sure to update the README table.
 
 Then just PR it and maybe ping ZeWaka in #tooling-questions to merge it.
 
