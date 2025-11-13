@@ -1309,6 +1309,7 @@ static struct {
 	struct {
 		int unsigned version;
 
+		// https://github.com/wolfpld/tracy/blame/master/public/common/TracyQueue.hpp#L10
 		char unsigned zone_begin;
 		char unsigned zone_end;
 		char unsigned zone_color;
@@ -1322,6 +1323,7 @@ static struct {
 		char unsigned response_string_data;
 		char unsigned response_thread_name;
 
+		// https://github.com/wolfpld/tracy/blob/master/public/common/TracyProtocol.hpp#L40
 		char unsigned query_terminate;
 		char unsigned query_string;
 		char unsigned query_thread_string;
@@ -1627,6 +1629,8 @@ long long unix_timestamp(void) {
 #define UTRACY_PROTOCOL_0_10_0 (64)
 #define UTRACY_PROTOCOL_0_11_0 (66)
 #define UTRACY_PROTOCOL_0_11_1 (69)
+#define UTRACY_PROTOCOL_0_12_0 (74) // Also covers 0.12.1 and 0.12.2
+#define UTRACY_PROTOCOL_0_13_0 (76)
 
 #define UTRACY_EVT_ZONEBEGIN (15)
 #define UTRACY_EVT_ZONEEND (17)
@@ -1682,6 +1686,7 @@ void utracy_emit_frame_mark(char *const name) {
 	});
 }
 
+/* removed in 0.13 */
 UTRACY_INTERNAL
 long long calibrate_delay(void) {
 	(void) UTRACY_MEMSET(utracy.queue.events, 0, sizeof(utracy.queue.events));
@@ -1943,6 +1948,57 @@ int utracy_protocol_init(int unsigned version) {
 			utracy.protocol.response_symbol_code_unavail = 94;
 			utracy.protocol.response_string_data = 100;
 			utracy.protocol.response_thread_name = 101;
+
+			utracy.protocol.query_terminate = 0;
+			utracy.protocol.query_string = 1;
+			utracy.protocol.query_thread_string = 2;
+			utracy.protocol.query_source_location = 3;
+			utracy.protocol.query_disconnect = 9;
+			utracy.protocol.query_symbol_code = 12;
+			utracy.protocol.query_source_code = 13;
+			utracy.protocol.query_data_transfer = 14;
+			utracy.protocol.query_data_transfer_part = 15;
+			break;
+
+		/* Also covers 0.12.1 and 0.12.2 */
+		case UTRACY_PROTOCOL_0_12_0:
+			utracy.protocol.zone_begin = 15;
+			utracy.protocol.zone_end = 17;
+			utracy.protocol.zone_color = 67;
+			utracy.protocol.thread_context = 61;
+			utracy.protocol.framemark = 69;
+
+			utracy.protocol.response_source_location = 73;
+			utracy.protocol.response_server_query_noop = 94;
+			utracy.protocol.response_source_code_unavail = 95;
+			utracy.protocol.response_symbol_code_unavail = 96;
+			utracy.protocol.response_string_data = 102;
+			utracy.protocol.response_thread_name = 103;
+
+			utracy.protocol.query_terminate = 0;
+			utracy.protocol.query_string = 1;
+			utracy.protocol.query_thread_string = 2;
+			utracy.protocol.query_source_location = 3;
+			utracy.protocol.query_disconnect = 9;
+			utracy.protocol.query_symbol_code = 12;
+			utracy.protocol.query_source_code = 13;
+			utracy.protocol.query_data_transfer = 14;
+			utracy.protocol.query_data_transfer_part = 15;
+			break;
+
+		case UTRACY_PROTOCOL_0_13_0:
+			utracy.protocol.zone_begin = 15;
+			utracy.protocol.zone_end = 17;
+			utracy.protocol.zone_color = 68;
+			utracy.protocol.thread_context = 62;
+			utracy.protocol.framemark = 70;
+
+			utracy.protocol.response_source_location = 74;
+			utracy.protocol.response_server_query_noop = 95;
+			utracy.protocol.response_source_code_unavail = 96;
+			utracy.protocol.response_symbol_code_unavail = 97;
+			utracy.protocol.response_string_data = 104;
+			utracy.protocol.response_thread_name = 105;
 
 			utracy.protocol.query_terminate = 0;
 			utracy.protocol.query_string = 1;
@@ -2338,7 +2394,9 @@ int utracy_write_source_code(int unsigned id) {
 		case UTRACY_PROTOCOL_0_9_0:
 		case UTRACY_PROTOCOL_0_10_0:
 		case UTRACY_PROTOCOL_0_11_0:
-		case UTRACY_PROTOCOL_0_11_1:;
+		case UTRACY_PROTOCOL_0_11_1:
+		case UTRACY_PROTOCOL_0_12_0:
+		case UTRACY_PROTOCOL_0_13_0:;
 			struct network_response_source_code msg = {
 				.type = utracy.protocol.response_source_code_unavail,
 				.id = id
@@ -2566,6 +2624,109 @@ int utracy_server_pump(void) {
 }
 
 UTRACY_INTERNAL
+int utracy_send_welcome(void) {
+	switch(utracy.protocol.version) {
+		case UTRACY_PROTOCOL_0_8_1:
+		case UTRACY_PROTOCOL_0_8_2:
+		case UTRACY_PROTOCOL_0_9_0:
+		case UTRACY_PROTOCOL_0_10_0:
+		case UTRACY_PROTOCOL_0_11_0:
+		case UTRACY_PROTOCOL_0_11_1:
+		case UTRACY_PROTOCOL_0_12_0:;
+#pragma pack(push, 1)
+			struct network_welcome_pre_0_13 {
+				double multiplier;
+				long long init_begin;
+				long long init_end;
+				long long delay; /* removed in 0.13 */
+				long long resolution;
+				long long epoch;
+				long long exec_time;
+				long long pid;
+				long long sampling_period;
+				char unsigned flags;
+				char unsigned cpu_arch;
+				char cpu_manufacturer[12];
+				int unsigned cpu_id;
+				char program_name[64];
+				char host_info[1024];
+			};
+			_Static_assert(1178 == sizeof(struct network_welcome_pre_0_13), "incorrect size");
+#pragma pack(pop)
+
+			struct network_welcome_pre_0_13 welcome_old = {
+				.multiplier = utracy.info.multiplier,
+				.init_begin = utracy.info.init_begin,
+				.init_end = utracy.info.init_end,
+				.delay = utracy.info.delay,
+				.resolution = utracy.info.resolution,
+				.epoch = utracy.info.epoch,
+				.exec_time = utracy.info.exec_time,
+				.pid = 0,
+				.sampling_period = 0,
+				.flags = 1,
+				.cpu_arch = 0,
+				.cpu_manufacturer = "???",
+				.cpu_id = 0,
+				.program_name = "DREAMDAEMON",
+				.host_info = "???"
+			};
+
+			if(0 != utracy_client_send(&welcome_old, sizeof(welcome_old))) {
+				LOG_DEBUG_ERROR;
+				return -1;
+			}
+			break;
+
+		case UTRACY_PROTOCOL_0_13_0:;
+#pragma pack(push, 1)
+			struct network_welcome {
+				double multiplier;
+				long long init_begin;
+				long long init_end;
+				long long resolution;
+				long long epoch;
+				long long exec_time;
+				long long pid;
+				long long sampling_period;
+				char unsigned flags;
+				char unsigned cpu_arch;
+				char cpu_manufacturer[12];
+				int unsigned cpu_id;
+				char program_name[64];
+				char host_info[1024];
+			};
+			_Static_assert(1170 == sizeof(struct network_welcome), "incorrect size");
+#pragma pack(pop)
+
+			struct network_welcome welcome = {
+				.multiplier = utracy.info.multiplier,
+				.init_begin = utracy.info.init_begin,
+				.init_end = utracy.info.init_end,
+				.resolution = utracy.info.resolution,
+				.epoch = utracy.info.epoch,
+				.exec_time = utracy.info.exec_time,
+				.pid = 0,
+				.sampling_period = 0,
+				.flags = 1,
+				.cpu_arch = 0,
+				.cpu_manufacturer = "???",
+				.cpu_id = 0,
+				.program_name = "DREAMDAEMON",
+				.host_info = "???"
+			};
+
+			if(0 != utracy_client_send(&welcome, sizeof(welcome))) {
+				LOG_DEBUG_ERROR;
+				return -1;
+			}
+			break;
+	}
+
+	return 0;
+}
+
+UTRACY_INTERNAL
 int utracy_client_negotiate(void) {
 	char handshake[8];
 	if(0 != utracy_client_recv(handshake, sizeof(handshake))) {
@@ -2596,6 +2757,11 @@ int utracy_client_negotiate(void) {
 		return -1;
 	}
 
+	/* calibrate delay for pre-0.13 protocols */
+	if(utracy.protocol.version < UTRACY_PROTOCOL_0_13_0) {
+		utracy.info.delay = calibrate_delay();
+	}
+
 	/* success */
 	char unsigned response = 1;
 	if(0 != utracy_client_send(&response, sizeof(response))) {
@@ -2603,46 +2769,7 @@ int utracy_client_negotiate(void) {
 		return -1;
 	}
 
-#pragma pack(push, 1)
-	struct network_welcome {
-		double multiplier;
-		long long init_begin;
-		long long init_end;
-		long long delay;
-		long long resolution;
-		long long epoch;
-		long long exec_time;
-		long long pid;
-		long long sampling_period;
-		char unsigned flags;
-		char unsigned cpu_arch;
-		char cpu_manufacturer[12];
-		int unsigned cpu_id;
-		char program_name[64];
-		char host_info[1024];
-	};
-	_Static_assert(1178 == sizeof(struct network_welcome), "incorrect size");
-#pragma pack(pop)
-
-	struct network_welcome welcome = {
-		.multiplier = utracy.info.multiplier,
-		.init_begin = utracy.info.init_begin,
-		.init_end = utracy.info.init_end,
-		.delay = utracy.info.delay,
-		.resolution = utracy.info.resolution,
-		.epoch = utracy.info.epoch,
-		.exec_time = utracy.info.exec_time,
-		.pid = 0,
-		.sampling_period = 0,
-		.flags = 1,
-		.cpu_arch = 0,
-		.cpu_manufacturer = "???",
-		.cpu_id = 0,
-		.program_name = "DREAMDAEMON",
-		.host_info = "???"
-	};
-
-	if(0 != utracy_client_send(&welcome, sizeof(welcome))) {
+	if(0 != utracy_send_welcome()) {
 		LOG_DEBUG_ERROR;
 		return -1;
 	}
@@ -3101,7 +3228,7 @@ char *UTRACY_WINDOWS_CDECL UTRACY_LINUX_CDECL init(int argc, char **argv) {
 	}
 
 	utracy.info.resolution = calibrate_resolution();
-	utracy.info.delay = calibrate_delay();
+	utracy.info.delay = 0; // calibrate later if needed (pre-0.13 protocols)
 	utracy.info.multiplier = calibrate_multiplier();
 	utracy.info.epoch = unix_timestamp();
 	utracy.info.exec_time = unix_timestamp();
