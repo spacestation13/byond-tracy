@@ -1623,6 +1623,31 @@ long long unix_timestamp(void) {
 #endif
 }
 
+/* cpu information */
+UTRACY_INTERNAL
+void get_cpu_info(char *manufacturer, int unsigned *cpu_id) {
+	UTRACY_MEMCPY(manufacturer, "Unknown\0\0\0\0\0", 12);
+	*cpu_id = 0;
+
+#if defined(UTRACY_MSVC)
+	int info[4];
+	__cpuid(info, 0);
+	UTRACY_MEMCPY(manufacturer + 0, &info[1], 4);
+	UTRACY_MEMCPY(manufacturer + 4, &info[3], 4);
+	UTRACY_MEMCPY(manufacturer + 8, &info[2], 4);
+	__cpuid(info, 1);
+	*cpu_id = info[0];
+#else
+	int unsigned eax, ebx, ecx, edx;
+	__asm__ __volatile__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(0));
+	UTRACY_MEMCPY(manufacturer + 0, &ebx, 4);
+	UTRACY_MEMCPY(manufacturer + 4, &edx, 4);
+	UTRACY_MEMCPY(manufacturer + 8, &ecx, 4);
+	__asm__ __volatile__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(1));
+	*cpu_id = eax;
+#endif
+}
+
 #define UTRACY_PROTOCOL_0_8_1 (56)
 #define UTRACY_PROTOCOL_0_8_2 (57)
 #define UTRACY_PROTOCOL_0_9_0 (63)
@@ -2625,6 +2650,10 @@ int utracy_server_pump(void) {
 
 UTRACY_INTERNAL
 int utracy_send_welcome(void) {
+	char cpu_manufacturer[12];
+	int unsigned cpu_id;
+	get_cpu_info(cpu_manufacturer, &cpu_id);
+
 	switch(utracy.protocol.version) {
 		case UTRACY_PROTOCOL_0_8_1:
 		case UTRACY_PROTOCOL_0_8_2:
@@ -2666,11 +2695,12 @@ int utracy_send_welcome(void) {
 				.sampling_period = 0,
 				.flags = 1,
 				.cpu_arch = 0,
-				.cpu_manufacturer = "???",
-				.cpu_id = 0,
+				.cpu_id = cpu_id,
 				.program_name = "DREAMDAEMON",
 				.host_info = "???"
 			};
+
+			UTRACY_MEMCPY(welcome_old.cpu_manufacturer, cpu_manufacturer, 12);
 
 			if(0 != utracy_client_send(&welcome_old, sizeof(welcome_old))) {
 				LOG_DEBUG_ERROR;
@@ -2710,11 +2740,12 @@ int utracy_send_welcome(void) {
 				.sampling_period = 0,
 				.flags = 1,
 				.cpu_arch = 0,
-				.cpu_manufacturer = "???",
-				.cpu_id = 0,
+				.cpu_id = cpu_id,
 				.program_name = "DREAMDAEMON",
 				.host_info = "???"
 			};
+
+			UTRACY_MEMCPY(welcome.cpu_manufacturer, cpu_manufacturer, 12);
 
 			if(0 != utracy_client_send(&welcome, sizeof(welcome))) {
 				LOG_DEBUG_ERROR;
