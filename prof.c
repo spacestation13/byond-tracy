@@ -1310,6 +1310,7 @@ static struct {
 		long long delay;
 		long long epoch;
 		long long exec_time;
+		char host_info[1024];
 	} info;
 
 	struct {
@@ -2703,10 +2704,10 @@ int utracy_send_welcome(void) {
 				.cpu_arch = CpuArchX86,
 				.cpu_id = cpu_id,
 				.program_name = "DREAMDAEMON",
-				.host_info = "???"
 			};
 
 			UTRACY_MEMCPY(welcome_old.cpu_manufacturer, cpu_manufacturer, 12);
+			UTRACY_MEMCPY(welcome_old.host_info, utracy.info.host_info, min(strlen(utracy.info.host_info), 1024));
 
 			if(0 != utracy_client_send(&welcome_old, sizeof(welcome_old))) {
 				LOG_DEBUG_ERROR;
@@ -2748,10 +2749,10 @@ int utracy_send_welcome(void) {
 				.cpu_arch = CpuArchX86,
 				.cpu_id = cpu_id,
 				.program_name = "DREAMDAEMON",
-				.host_info = "???"
 			};
 
 			UTRACY_MEMCPY(welcome.cpu_manufacturer, cpu_manufacturer, 12);
+			UTRACY_MEMCPY(welcome.host_info, utracy.info.host_info, min(strlen(utracy.info.host_info), 1024));
 
 			if(0 != utracy_client_send(&welcome, sizeof(welcome))) {
 				LOG_DEBUG_ERROR;
@@ -3121,6 +3122,16 @@ char *UTRACY_WINDOWS_CDECL UTRACY_LINUX_CDECL init(int argc, char **argv) {
 	(void) UTRACY_MEMSET(&utracy, 0, sizeof(utracy));
 
 	utracy.info.init_begin = utracy_tsc();
+
+	// Parse optional host info parameter
+	if(argc > 0 && argv != NULL && argv[0] != NULL) {
+		size_t len = strlen(argv[0]);
+		if(len >= 1024) len = 1023;
+		UTRACY_MEMCPY(utracy.info.host_info, argv[0], len);
+		utracy.info.host_info[len] = '\0';
+	} else {
+		UTRACY_MEMCPY(utracy.info.host_info, "No Info", 8);
+	}
 
 	if(0 != event_queue_init()) {
 		LOG_DEBUG_ERROR;
