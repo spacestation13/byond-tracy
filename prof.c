@@ -1233,6 +1233,12 @@ void LZ4_resetStream_fast(LZ4_stream_t *ctx) {
 #	define atomic_store_release(a, b) atomic_store_explicit((a), (b), memory_order_release)
 #endif
 
+#define CpuArchUnknown (0)
+#define CpuArchX86 (1)
+#define CpuArchX64 (2)
+#define CpuArchArm32 (3)
+#define CpuArchArm64 (4)
+
 struct event_zone_begin {
 	int unsigned tid;
 	void  *srcloc;
@@ -2694,7 +2700,7 @@ int utracy_send_welcome(void) {
 				.pid = 0,
 				.sampling_period = 0,
 				.flags = 1,
-				.cpu_arch = 0,
+				.cpu_arch = CpuArchUnknown,
 				.cpu_id = cpu_id,
 				.program_name = "DREAMDAEMON",
 				.host_info = "???"
@@ -2739,7 +2745,7 @@ int utracy_send_welcome(void) {
 				.pid = 0,
 				.sampling_period = 0,
 				.flags = 1,
-				.cpu_arch = 0,
+				.cpu_arch = CpuArchUnknown,
 				.cpu_id = cpu_id,
 				.program_name = "DREAMDAEMON",
 				.host_info = "???"
