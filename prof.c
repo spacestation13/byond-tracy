@@ -2700,7 +2700,7 @@ int utracy_send_welcome(void) {
 				.pid = 0,
 				.sampling_period = 0,
 				.flags = 1,
-				.cpu_arch = CpuArchUnknown,
+				.cpu_arch = CpuArchX86,
 				.cpu_id = cpu_id,
 				.program_name = "DREAMDAEMON",
 				.host_info = "???"
@@ -2745,7 +2745,7 @@ int utracy_send_welcome(void) {
 				.pid = 0,
 				.sampling_period = 0,
 				.flags = 1,
-				.cpu_arch = CpuArchUnknown,
+				.cpu_arch = CpuArchX86,
 				.cpu_id = cpu_id,
 				.program_name = "DREAMDAEMON",
 				.host_info = "???"
