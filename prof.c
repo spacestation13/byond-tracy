@@ -1317,6 +1317,7 @@ static struct {
 		int unsigned version;
 
 		// https://github.com/wolfpld/tracy/blame/master/public/common/TracyQueue.hpp#L10
+		char unsigned message_app_info;
 		char unsigned zone_begin;
 		char unsigned zone_end;
 		char unsigned zone_color;
@@ -1458,23 +1459,19 @@ static int unsigned linux_main_tid;
 UTRACY_INTERNAL UTRACY_INLINE
 int unsigned utracy_tid(void) {
 #if defined(UTRACY_WINDOWS)
-#	if defined(UTRACY_CLANG) || defined(UTRACY_GCC)
 
+#if defined(UTRACY_CLANG) || defined(UTRACY_GCC)
 	int unsigned tid;
-	__asm__("mov %%fs:0x24, %0;" :"=r"(tid));
+	__asm__("mov %%fs:0x24, %0" :"=r"(tid));
 	return tid;
-
-#	elif defined(UTRACY_MSVC)
-
+#elif defined(UTRACY_MSVC)
 	__asm {
 		mov eax, fs:[0x24];
 	}
-
-#	else
-
+#else
 	return GetCurrentThreadId();
+#endif
 
-#	endif
 #elif defined(UTRACY_LINUX)
 	/* too damn slow
 	return syscall(__NR_gettid); */
@@ -1664,6 +1661,7 @@ void get_cpu_info(char *manufacturer, int unsigned *cpu_id) {
 #define UTRACY_PROTOCOL_0_12_0 (74) // Also covers 0.12.1 and 0.12.2
 #define UTRACY_PROTOCOL_0_13_0 (76)
 
+#define UTRACY_EVT_MESSAGEAPPINFO (6)
 #define UTRACY_EVT_ZONEBEGIN (15)
 #define UTRACY_EVT_ZONEEND (17)
 #define UTRACY_EVT_PLOTDATA (43)
@@ -1867,6 +1865,7 @@ int utracy_protocol_init(int unsigned version) {
 	switch(version) {
 		case UTRACY_PROTOCOL_0_8_1:
 		case UTRACY_PROTOCOL_0_8_2:
+			utracy.protocol.message_app_info = 6;
 			utracy.protocol.zone_begin = 15;
 			utracy.protocol.zone_end = 17;
 			utracy.protocol.zone_color = 62;
@@ -1893,6 +1892,7 @@ int utracy_protocol_init(int unsigned version) {
 
 		/* also covers 0.9.1 */
 		case UTRACY_PROTOCOL_0_9_0:
+			utracy.protocol.message_app_info = 6;
 			utracy.protocol.zone_begin = 15;
 			utracy.protocol.zone_end = 17;
 			utracy.protocol.zone_color = 64;
@@ -1918,6 +1918,7 @@ int utracy_protocol_init(int unsigned version) {
 			break;
 
 		case UTRACY_PROTOCOL_0_10_0:
+			utracy.protocol.message_app_info = 6;
 			utracy.protocol.zone_begin = 15;
 			utracy.protocol.zone_end = 17;
 			utracy.protocol.zone_color = 64;
@@ -1943,6 +1944,7 @@ int utracy_protocol_init(int unsigned version) {
 			break;
 
 		case UTRACY_PROTOCOL_0_11_0:
+			utracy.protocol.message_app_info = 6;
 			utracy.protocol.zone_begin = 15;
 			utracy.protocol.zone_end = 17;
 			utracy.protocol.zone_color = 65;
@@ -1968,6 +1970,7 @@ int utracy_protocol_init(int unsigned version) {
 			break;
 
 		case UTRACY_PROTOCOL_0_11_1:
+			utracy.protocol.message_app_info = 6;
 			utracy.protocol.zone_begin = 15;
 			utracy.protocol.zone_end = 17;
 			utracy.protocol.zone_color = 65;
@@ -1994,6 +1997,7 @@ int utracy_protocol_init(int unsigned version) {
 
 		/* Also covers 0.12.1 and 0.12.2 */
 		case UTRACY_PROTOCOL_0_12_0:
+			utracy.protocol.message_app_info = 6;
 			utracy.protocol.zone_begin = 15;
 			utracy.protocol.zone_end = 17;
 			utracy.protocol.zone_color = 67;
@@ -2019,6 +2023,7 @@ int utracy_protocol_init(int unsigned version) {
 			break;
 
 		case UTRACY_PROTOCOL_0_13_0:
+			utracy.protocol.message_app_info = 6;
 			utracy.protocol.zone_begin = 15;
 			utracy.protocol.zone_end = 17;
 			utracy.protocol.zone_color = 68;
@@ -3123,15 +3128,12 @@ char *UTRACY_WINDOWS_CDECL UTRACY_LINUX_CDECL init(int argc, char **argv) {
 
 	utracy.info.init_begin = utracy_tsc();
 
-	// Parse optional host info parameter
-	if(argc > 0 && argv != NULL && argv[0] != NULL) {
-		size_t len = strlen(argv[0]);
-		if(len >= 1024) len = 1023;
-		UTRACY_MEMCPY(utracy.info.host_info, argv[0], len);
-		utracy.info.host_info[len] = '\0';
-	} else {
-		UTRACY_MEMCPY(utracy.info.host_info, "No Info", 8);
-	}
+	// Set host info based on OS
+#if defined(UTRACY_WINDOWS)
+	UTRACY_MEMCPY(utracy.info.host_info, "\nOS: Windows", 13);
+#elif defined(UTRACY_LINUX)
+	UTRACY_MEMCPY(utracy.info.host_info, "\nOS: Linux", 11);
+#endif
 
 	if(0 != event_queue_init()) {
 		LOG_DEBUG_ERROR;
