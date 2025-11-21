@@ -3463,11 +3463,9 @@ char *UTRACY_WINDOWS_CDECL UTRACY_LINUX_CDECL init(int argc, char **argv) {
 
 UTRACY_EXTERNAL
 char *UTRACY_WINDOWS_CDECL UTRACY_LINUX_CDECL app_info(int argc, char **argv) {
-
 	if(!initialized) {
 		return "profiler not initialized";
 	}
-
 	if(argc != 1) {
 		return "expected 1 argument";
 	}
@@ -3483,7 +3481,6 @@ char *UTRACY_WINDOWS_CDECL UTRACY_LINUX_CDECL app_info(int argc, char **argv) {
 	if(len == 0) {
 		return "text argument is empty";
 	}
-
 	if(len >= 65535) {
 		return "text argument is too long (max 65534 bytes)";
 	}
