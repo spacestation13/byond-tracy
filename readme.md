@@ -59,9 +59,7 @@ Messages are buffered and automatically sent to Tracy clients when they connect.
 
 	// Optionally send application info to Tracy
 	var/app_info_text = "[world.name] - [world.byond_version].[world.byond_build]"
-	var/app_info_result = call_ext(lib, "app_info")(app_info_text)
-	if("0" != app_info_result)
-		world.log << "Warning: Failed to send app info: [app_info_result]"
+	call_ext(lib, "app_info")(app_info_text)
 
 /world/New()
 	prof_init()
