@@ -2478,7 +2478,9 @@ int utracy_write_app_info(char const *const str, int unsigned len) {
 		return -1;
 	}
 
-	free(persistent_str);
+	// Do NOT free persistent_str - Tracy uses the ptr value as a key and may 
+	// not have processed/been sent the string yet. The memory will be leaked
+	// but this is intentional for the protocol to work correctly.
 
 	return 0;
 }
