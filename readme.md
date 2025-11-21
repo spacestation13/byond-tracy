@@ -42,7 +42,8 @@ byond-tracy glues together a byond server with the tracy profiler allowing you t
 ## usage
 simply call `init` from `prof.dll` to begin collecting profile data and connect using [tracy-server](https://github.com/wolfpld/tracy/releases) `Tracy.exe`
 
-To send custom application information to Tracy (such as server name, version, or other metadata), use the `app_info` function:
+To send custom application information to Tracy (such as server name, version, or other metadata), use the `app_info` function. 
+Messages are buffered and automatically sent to Tracy clients when they connect. Each call to `app_info` adds a new line to the display:
 
 ```dm
 /proc/prof_init()
@@ -56,7 +57,7 @@ To send custom application information to Tracy (such as server name, version, o
 	var/init = call_ext(lib, "init")()
 	if("0" != init) CRASH("[lib] init error: [init]")
 
-	// Optionally send application info to Tracy (can be called anytime after init)
+	// Optionally send application info to Tracy
 	var/app_info_text = "[world.name] - [world.byond_version].[world.byond_build]"
 	var/app_info_result = call_ext(lib, "app_info")(app_info_text)
 	if("0" != app_info_result)

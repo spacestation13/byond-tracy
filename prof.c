@@ -1316,7 +1316,7 @@ static struct {
 	struct {
 		int unsigned version;
 
-		// https://github.com/wolfpld/tracy/blame/master/public/common/TracyQueue.hpp#L10
+		// https://github.com/wolfpld/tracy/blob/master/public/common/TracyQueue.hpp#L10
 		char unsigned message_app_info;
 		char unsigned zone_begin;
 		char unsigned zone_end;
@@ -1328,6 +1328,7 @@ static struct {
 		char unsigned response_server_query_noop;
 		char unsigned response_source_code_unavail;
 		char unsigned response_symbol_code_unavail;
+		char unsigned response_single_string_data;
 		char unsigned response_string_data;
 		char unsigned response_thread_name;
 
@@ -1386,6 +1387,15 @@ static struct {
 		_Alignas(UTRACY_L1_LINE_SIZE) int padding;
 #endif
 	} queue;
+
+	struct {
+		struct app_info_msg {
+			char *str;
+			int unsigned len;
+		} *messages;
+		int unsigned count;
+		int unsigned capacity;
+	} app_info_buffer;
 } utracy;
 
 /* queue api */
@@ -1716,6 +1726,69 @@ void utracy_emit_frame_mark(char *const name) {
 	});
 }
 
+UTRACY_INTERNAL UTRACY_INLINE
+void utracy_emit_app_info(char const *const str, int unsigned len) {
+	// Always buffer the message for replay on connect
+	if(utracy.app_info_buffer.count >= utracy.app_info_buffer.capacity) {
+		// Expand buffer capacity (start at 8, double each time)
+		int unsigned new_capacity = utracy.app_info_buffer.capacity == 0 ? 8 : utracy.app_info_buffer.capacity * 2;
+		struct app_info_msg *new_messages = realloc(utracy.app_info_buffer.messages, new_capacity * sizeof(struct app_info_msg));
+		if(!new_messages) {
+			LOG_DEBUG_ERROR;
+			return;
+		}
+		utracy.app_info_buffer.messages = new_messages;
+		utracy.app_info_buffer.capacity = new_capacity;
+	}
+	
+	// Allocate and store a copy of the string
+	char *stored_str = malloc(len);
+	if(!stored_str) {
+		LOG_DEBUG_ERROR;
+		return;
+	}
+	UTRACY_MEMCPY(stored_str, str, len);
+	
+	utracy.app_info_buffer.messages[utracy.app_info_buffer.count].str = stored_str;
+	utracy.app_info_buffer.messages[utracy.app_info_buffer.count].len = len;
+	utracy.app_info_buffer.count++;
+	
+	// If connected, send immediately
+	if(utracy.sock.connected) {
+		if(0 != utracy_write_app_info(str, len)) {
+			LOG_DEBUG_ERROR;
+			return;
+		}
+		
+		if(0 != utracy_commit()) {
+			LOG_DEBUG_ERROR;
+			return;
+		}
+	}
+}
+
+UTRACY_INTERNAL UTRACY_INLINE
+void utracy_replay_app_info_buffer(void) {
+	if(utracy.app_info_buffer.count == 0) {
+		return;
+	}
+	
+	for(int unsigned i = 0; i < utracy.app_info_buffer.count; i++) {
+		struct app_info_msg *msg = &utracy.app_info_buffer.messages[i];
+		
+		if(0 != utracy_write_app_info(msg->str, msg->len)) {
+			LOG_DEBUG_ERROR;
+			continue;
+		}
+	}
+	
+	// Commit all the replayed messages
+	if(0 != utracy_commit()) {
+		LOG_DEBUG_ERROR;
+		return;
+	}
+}
+
 /* removed in 0.13 */
 UTRACY_INTERNAL
 long long calibrate_delay(void) {
@@ -1876,6 +1949,7 @@ int utracy_protocol_init(int unsigned version) {
 			utracy.protocol.response_server_query_noop = 87;
 			utracy.protocol.response_source_code_unavail = 88;
 			utracy.protocol.response_symbol_code_unavail = 89;
+			utracy.protocol.response_single_string_data = 91;
 			utracy.protocol.response_string_data = 94;
 			utracy.protocol.response_thread_name = 95;
 
@@ -1903,6 +1977,7 @@ int utracy_protocol_init(int unsigned version) {
 			utracy.protocol.response_server_query_noop = 90;
 			utracy.protocol.response_source_code_unavail = 91;
 			utracy.protocol.response_symbol_code_unavail = 92;
+			utracy.protocol.response_single_string_data = 94;
 			utracy.protocol.response_string_data = 97;
 			utracy.protocol.response_thread_name = 98;
 
@@ -1929,6 +2004,7 @@ int utracy_protocol_init(int unsigned version) {
 			utracy.protocol.response_server_query_noop = 91;
 			utracy.protocol.response_source_code_unavail = 92;
 			utracy.protocol.response_symbol_code_unavail = 93;
+			utracy.protocol.response_single_string_data = 95;
 			utracy.protocol.response_string_data = 98;
 			utracy.protocol.response_thread_name = 99;
 
@@ -1955,6 +2031,7 @@ int utracy_protocol_init(int unsigned version) {
 			utracy.protocol.response_server_query_noop = 92;
 			utracy.protocol.response_source_code_unavail = 93;
 			utracy.protocol.response_symbol_code_unavail = 94;
+			utracy.protocol.response_single_string_data = 96;
 			utracy.protocol.response_string_data = 99;
 			utracy.protocol.response_thread_name = 100;
 
@@ -1981,6 +2058,7 @@ int utracy_protocol_init(int unsigned version) {
 			utracy.protocol.response_server_query_noop = 92;
 			utracy.protocol.response_source_code_unavail = 93;
 			utracy.protocol.response_symbol_code_unavail = 94;
+			utracy.protocol.response_single_string_data = 96;
 			utracy.protocol.response_string_data = 100;
 			utracy.protocol.response_thread_name = 101;
 
@@ -2008,6 +2086,7 @@ int utracy_protocol_init(int unsigned version) {
 			utracy.protocol.response_server_query_noop = 94;
 			utracy.protocol.response_source_code_unavail = 95;
 			utracy.protocol.response_symbol_code_unavail = 96;
+			utracy.protocol.response_single_string_data = 98;
 			utracy.protocol.response_string_data = 102;
 			utracy.protocol.response_thread_name = 103;
 
@@ -2034,6 +2113,7 @@ int utracy_protocol_init(int unsigned version) {
 			utracy.protocol.response_server_query_noop = 95;
 			utracy.protocol.response_source_code_unavail = 96;
 			utracy.protocol.response_symbol_code_unavail = 97;
+			utracy.protocol.response_single_string_data = 99;
 			utracy.protocol.response_string_data = 104;
 			utracy.protocol.response_thread_name = 105;
 
@@ -2073,6 +2153,8 @@ int utracy_client_accept(void) {
 
 	LOG_INFO("received connection: %s\n", ip);
 	utracy.sock.connected = 1;
+	
+	utracy_replay_app_info_buffer();
 
 	return 0;
 }
@@ -2330,6 +2412,78 @@ int utracy_write_frame_mark(struct event evt) {
 }
 
 UTRACY_INTERNAL UTRACY_INLINE
+int utracy_write_single_string(char const *const str, int unsigned len) {
+#pragma pack(push, 1)
+	struct network_single_string {
+		char unsigned type;
+		short unsigned len;
+		char str[];
+	};
+	_Static_assert(3 == sizeof(struct network_single_string), "incorrect size");
+#pragma pack(pop)
+
+	size_t size = sizeof(struct network_single_string) + len;
+	static char buf[sizeof(struct network_single_string) + 65536];
+	struct network_single_string *msg = (struct network_single_string *) buf;
+
+	msg->type = utracy.protocol.response_single_string_data;
+	msg->len = (short unsigned) len;
+	(void) UTRACY_MEMCPY(msg->str, str, len);
+
+	if(0 != utracy_write_packet(msg, size)) {
+		LOG_DEBUG_ERROR;
+		return -1;
+	}
+
+	return 0;
+}
+
+UTRACY_INTERNAL UTRACY_INLINE
+int utracy_write_app_info(char const *const str, int unsigned len) {
+#pragma pack(push, 1)
+	struct network_app_info {
+		char unsigned type;
+		long long timestamp;
+		long long unsigned ptr;
+		short unsigned size;
+	};
+	_Static_assert(19 == sizeof(struct network_app_info), "incorrect size");
+#pragma pack(pop)
+
+	char *persistent_str = malloc(len);
+	if(!persistent_str) {
+		LOG_DEBUG_ERROR;
+		return -1;
+	}
+	UTRACY_MEMCPY(persistent_str, str, len);
+
+	// IMPORTANT: Send SingleStringData FIRST (before the MessageAppInfo packet)
+	// This matches Tracy's SendSingleString followed by AppendData pattern
+	if(0 != utracy_write_single_string(persistent_str, len)) {
+		LOG_DEBUG_ERROR;
+		free(persistent_str);
+		return -1;
+	}
+
+	struct network_app_info msg = {
+		.type = utracy.protocol.message_app_info,
+		.timestamp = utracy_tsc(),
+		.ptr = (uintptr_t) persistent_str,
+		.size = (short unsigned) len
+	};
+
+	if(0 != utracy_write_packet(&msg, sizeof(msg))) {
+		LOG_DEBUG_ERROR;
+		free(persistent_str);
+		return -1;
+	}
+
+	free(persistent_str);
+
+	return 0;
+}
+
+UTRACY_INTERNAL UTRACY_INLINE
 int utracy_write_srcloc(struct utracy_source_location const *const srcloc) {
 #pragma pack(push, 1)
 	struct network_srcloc {
@@ -2479,7 +2633,9 @@ int utracy_consume_request(void) {
 	}
 
 	if(req.type == utracy.protocol.query_string) {
-		if(0 != utracy_write_stringdata(utracy.protocol.response_string_data, (char *) (uintptr_t) req.ptr, req.ptr)) {
+		char *str = (char *) (uintptr_t) req.ptr;
+		
+		if(0 != utracy_write_stringdata(utracy.protocol.response_string_data, str, req.ptr)) {
 			LOG_DEBUG_ERROR;
 			return -1;
 		}
@@ -3304,11 +3460,58 @@ char *UTRACY_WINDOWS_CDECL UTRACY_LINUX_CDECL init(int argc, char **argv) {
 }
 
 UTRACY_EXTERNAL
+char *UTRACY_WINDOWS_CDECL UTRACY_LINUX_CDECL app_info(int argc, char **argv) {
+	LOG_FILE("app_info called: argc=%d\n", argc);
+
+	if(!initialized) {
+		LOG_FILE("app_info: profiler not initialized\n");
+		return "profiler not initialized";
+	}
+
+	if(argc != 1) {
+		LOG_FILE("app_info: wrong argc=%d\n", argc);
+		return "expected 1 argument";
+	}
+
+	char const *const text = argv[0];
+	LOG_FILE("app_info: text ptr=%p\n", (void*)text);
+
+	if(!text) {
+		LOG_FILE("app_info: text is null\n");
+		return "text argument is null";
+	}
+
+	int unsigned const len = (int unsigned) strlen(text);
+	LOG_FILE("app_info: text='%s' len=%u\n", text, len);
+
+	if(len == 0) {
+		LOG_FILE("app_info: text is empty\n");
+		return "text argument is empty";
+	}
+
+	if(len >= 65535) {
+		LOG_FILE("app_info: text is too long: %u\n", len);
+		return "text argument is too long (max 65534 bytes)";
+	}
+
+	utracy_emit_app_info(text, len);
+
+	return "0";
+}
+
+UTRACY_EXTERNAL
 char *UTRACY_WINDOWS_CDECL UTRACY_LINUX_CDECL destroy(int argc, char **argv) {
 	(void) argc;
 	(void) argv;
 
-	/* not yet implemented */
+	// Free buffered app_info messages
+	for(int unsigned i = 0; i < utracy.app_info_buffer.count; i++) {
+		free(utracy.app_info_buffer.messages[i].str);
+	}
+	free(utracy.app_info_buffer.messages);
+	utracy.app_info_buffer.messages = NULL;
+	utracy.app_info_buffer.count = 0;
+	utracy.app_info_buffer.capacity = 0;
 
 	return "0";
 }
