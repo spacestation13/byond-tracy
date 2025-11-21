@@ -3461,36 +3461,28 @@ char *UTRACY_WINDOWS_CDECL UTRACY_LINUX_CDECL init(int argc, char **argv) {
 
 UTRACY_EXTERNAL
 char *UTRACY_WINDOWS_CDECL UTRACY_LINUX_CDECL app_info(int argc, char **argv) {
-	LOG_FILE("app_info called: argc=%d\n", argc);
 
 	if(!initialized) {
-		LOG_FILE("app_info: profiler not initialized\n");
 		return "profiler not initialized";
 	}
 
 	if(argc != 1) {
-		LOG_FILE("app_info: wrong argc=%d\n", argc);
 		return "expected 1 argument";
 	}
 
 	char const *const text = argv[0];
-	LOG_FILE("app_info: text ptr=%p\n", (void*)text);
 
 	if(!text) {
-		LOG_FILE("app_info: text is null\n");
 		return "text argument is null";
 	}
 
 	int unsigned const len = (int unsigned) strlen(text);
-	LOG_FILE("app_info: text='%s' len=%u\n", text, len);
 
 	if(len == 0) {
-		LOG_FILE("app_info: text is empty\n");
 		return "text argument is empty";
 	}
 
 	if(len >= 65535) {
-		LOG_FILE("app_info: text is too long: %u\n", len);
 		return "text argument is too long (max 65534 bytes)";
 	}
 
