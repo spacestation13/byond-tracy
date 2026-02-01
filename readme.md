@@ -41,11 +41,15 @@ byond-tracy glues together a byond server with the tracy profiler allowing you t
 *except `515.1612` on Linux as there was no release*
 
 ## supported tracy versions
-`0.8.1` `0.8.2` `0.9.0` `0.9.1` `0.10.0` `0.11.0` `0.11.1`
+`0.8.1` `0.8.2` `0.9.*` `0.10.0` `0.11.*` `0.12.*` `0.13.0`
 
 ## usage
 simply call `init` from `prof.dll` to begin collecting profile data and connect using [tracy-server](https://github.com/wolfpld/tracy/releases) `Tracy.exe`
-```ts
+
+To send custom application information to Tracy (such as server name, version, or other metadata), use the `app_info` function. 
+Messages are buffered and automatically sent to Tracy clients when they connect. Each call to `app_info` adds a new line to the display:
+
+```dm
 /proc/prof_init()
 	var/lib
 
@@ -56,6 +60,10 @@ simply call `init` from `prof.dll` to begin collecting profile data and connect 
 
 	var/init = call_ext(lib, "init")()
 	if("0" != init) CRASH("[lib] init error: [init]")
+
+	// Optionally send application info to Tracy
+	var/app_info_text = "[world.name] - [world.byond_version].[world.byond_build]"
+	call_ext(lib, "app_info")(app_info_text)
 
 /world/New()
 	prof_init()
