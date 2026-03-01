@@ -1,0 +1,33 @@
+name: Update Offsets
+
+on:
+  schedule:
+    - cron: "0 20 * * *"
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Fetch and apply new offsets
+      id: update
+      run: python3 .github/scripts/update_offsets.py
+
+    - name: Create pull request
+      uses: peter-evans/create-pull-request@v8
+      with:
+        commit-message: "offsets: add builds up to ${{ steps.update.outputs.new_max }}"
+        branch: "auto/offsets-${{ steps.update.outputs.new_max }}"
+        delete-branch: true
+        title: "offsets: add BYOND builds up to ${{ steps.update.outputs.new_builds }}"
+        body: |
+          Automatically pulled from [byond-tracy-offset-extractor](https://sovexe.github.io/byond-tracy-offset-extractor/).
+
+          New builds added: `${{ steps.update.outputs.new_builds }}`
