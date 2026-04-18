@@ -28,6 +28,6 @@ jobs:
         delete-branch: true
         title: "offsets: add BYOND builds up to ${{ steps.update.outputs.new_builds }}"
         body: |
-          Automatically pulled from [byond-tracy-offset-extractor](https://sovexe.github.io/byond-tracy-offset-extractor/).
+          Automatically pulled from [byond-tracy-offset-extractor](https://spacestation13.github.io/byond-tracy-offset-extractor/).
 
           New builds added: `${{ steps.update.outputs.new_builds }}`

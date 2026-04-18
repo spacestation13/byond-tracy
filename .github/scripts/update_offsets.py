@@ -7,7 +7,7 @@ import re
 import sys
 import urllib.request
 
-API   = "https://sovexe.github.io/byond-tracy-offset-extractor/data.json"
+API   = "https://spacestation13.github.io/byond-tracy-offset-extractor/data.json"
 ZEROS = ", ".join(["0x00000000"] * 11)
 
 

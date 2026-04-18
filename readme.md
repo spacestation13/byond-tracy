@@ -97,7 +97,7 @@ gcc -std=c11 -m32 -shared -fPIC -Ofast -s -DNDEBUG prof.c -pthread -o libprof.so
 
 ## developing
 
-To add offsets (required for every new BYOND version), you find them here: https://sovexe.github.io/byond-tracy-offset-extractor/
+To add offsets (required for every new BYOND version), you find them here: https://spacestation13.github.io/byond-tracy-offset-extractor
 
 It's already in copypaste form for the `offsets/` headers (non-experimental). Be sure to update the README table.
 
