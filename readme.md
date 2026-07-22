@@ -5,6 +5,18 @@ byond-tracy glues together a byond server with the tracy profiler allowing you t
 ## supported byond versions
 | windows  | linux    |
 | -------- | -------- |
+| 516.1685 | 516.1685 |
+| 516.1684 | 516.1684 |
+| 516.1683 | 516.1683 |
+| 516.1682 | 516.1682 |
+| 516.1681 | 516.1681 |
+| 516.1680 | 516.1680 |
+| 516.1679 | 516.1679 |
+| 516.1678 | 516.1678 |
+| 516.1677 | 516.1677 |
+| 516.1676 | 516.1676 |
+| 516.1675 | 516.1675 |
+| 516.1674 | 516.1674 |
 | 516.1673 | 516.1673 |
 | 516.1672 | 516.1672 |
 | 516.1671 | 516.1671 |
@@ -37,7 +49,7 @@ byond-tracy glues together a byond server with the tracy profiler allowing you t
 *except `515.1612` on Linux as there was no release*
 
 ## supported tracy versions
-`0.8.1` `0.8.2` `0.9.*` `0.10.0` `0.11.*` `0.12.*` `0.13.0`
+`0.8.1` `0.8.2` `0.9.*` `0.10.*` `0.11.*` `0.12.*` `0.13.0` `0.13.1`
 
 ## usage
 simply call `init` from `prof.dll` to begin collecting profile data and connect using [tracy-server](https://github.com/wolfpld/tracy/releases) `Tracy.exe`
@@ -98,7 +110,7 @@ gcc -std=c11 -m32 -shared -fPIC -Ofast -s -DNDEBUG prof.c -pthread -o libprof.so
 
 ## developing
 
-To add offsets (required for every new BYOND version), you find them here: https://sovexe.github.io/byond-tracy-offset-extractor/
+To add offsets (required for every new BYOND version), you find them here: https://spacestation13.github.io/byond-tracy-offset-extractor
 
 It's already in copypaste form for the `offsets/` headers (non-experimental). Be sure to update the README table.
 
