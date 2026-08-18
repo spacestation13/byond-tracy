@@ -10,7 +10,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       
       - name: Set up MSVC
         uses: ilammy/msvc-dev-cmd@v1
@@ -22,7 +22,7 @@ jobs:
           cl.exe /nologo /std:c11 /O2 /LD /DNDEBUG prof.c ws2_32.lib /Fe:prof.dll
       
       - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: windows-dll
           path: prof.dll
@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       
       - name: Install dependencies
         run: |
@@ -43,7 +43,7 @@ jobs:
           gcc -std=c11 -m32 -shared -fPIC -Ofast -s -DNDEBUG prof.c -pthread -o libprof.so
       
       - name: Upload Linux artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: linux-so
           path: libprof.so
@@ -53,7 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         
       - name: Get Short Git Hash
         id: git_hash
@@ -66,7 +66,7 @@ jobs:
           max_build=$(grep "BYOND_MAX_BUILD" offsets/windows.h | cut -d' ' -f3)
           echo "version=$max_build" >> $GITHUB_OUTPUT
         
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
       
       - name: Display structure of downloaded files
         run: ls -R
