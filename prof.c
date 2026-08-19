@@ -1270,6 +1270,12 @@ struct event {
 	};
 };
 
+struct trampoline_storage {
+	char exec_proc[32];
+	char server_tick[32];
+	char send_maps[32];
+};
+
 /* data */
 static struct {
 	struct string ***strings;
@@ -1294,11 +1300,7 @@ static struct {
 	int (UTRACY_WINDOWS_STDCALL UTRACY_LINUX_CDECL *orig_server_tick)(void);
 	void *send_maps;
 	void (UTRACY_WINDOWS_CDECL UTRACY_LINUX_CDECL *orig_send_maps)(void);
-	_Alignas(UTRACY_PAGE_SIZE) struct {
-		char exec_proc[32];
-		char server_tick[32];
-		char send_maps[32];
-	} trampoline;
+	_Alignas(UTRACY_PAGE_SIZE) struct trampoline_storage trampoline;
 } byond;
 
 static struct {
@@ -1662,6 +1664,7 @@ void get_cpu_info(char *manufacturer, int unsigned *cpu_id) {
 #define UTRACY_PROTOCOL_0_11_1 (69)
 #define UTRACY_PROTOCOL_0_12_0 (74) // Also covers 0.12.1 and 0.12.2
 #define UTRACY_PROTOCOL_0_13_0 (76)
+#define UTRACY_PROTOCOL_0_14_0 (82)
 
 #define UTRACY_EVT_ZONEBEGIN (15)
 #define UTRACY_EVT_ZONEEND (17)
@@ -2030,6 +2033,31 @@ int utracy_protocol_init(int unsigned version) {
 			utracy.protocol.response_symbol_code_unavail = 97;
 			utracy.protocol.response_string_data = 104;
 			utracy.protocol.response_thread_name = 105;
+
+			utracy.protocol.query_terminate = 0;
+			utracy.protocol.query_string = 1;
+			utracy.protocol.query_thread_string = 2;
+			utracy.protocol.query_source_location = 3;
+			utracy.protocol.query_disconnect = 9;
+			utracy.protocol.query_symbol_code = 12;
+			utracy.protocol.query_source_code = 13;
+			utracy.protocol.query_data_transfer = 14;
+			utracy.protocol.query_data_transfer_part = 15;
+			break;
+
+		case UTRACY_PROTOCOL_0_14_0:
+			utracy.protocol.zone_begin = 19;
+			utracy.protocol.zone_end = 25;
+			utracy.protocol.zone_color = 81;
+			utracy.protocol.thread_context = 75;
+			utracy.protocol.framemark = 83;
+
+			utracy.protocol.response_source_location = 87;
+			utracy.protocol.response_server_query_noop = 108;
+			utracy.protocol.response_source_code_unavail = 109;
+			utracy.protocol.response_symbol_code_unavail = 110;
+			utracy.protocol.response_string_data = 119;
+			utracy.protocol.response_thread_name = 120;
 
 			utracy.protocol.query_terminate = 0;
 			utracy.protocol.query_string = 1;
@@ -2714,7 +2742,8 @@ int utracy_send_welcome(void) {
 			}
 			break;
 
-		case UTRACY_PROTOCOL_0_13_0:;
+		case UTRACY_PROTOCOL_0_13_0:
+		case UTRACY_PROTOCOL_0_14_0:;
 #pragma pack(push, 1)
 			struct network_welcome {
 				double multiplier;
