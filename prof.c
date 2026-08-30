@@ -2245,6 +2245,9 @@ int utracy_write_server_context(int unsigned tid) {
 	return 0;
 }
 
+#define UTRACY_PROTOCOL_OFFSET_16BIT (1ll << 16)
+#define UTRACY_PROTOCOL_OFFSET_32BIT (UTRACY_PROTOCOL_OFFSET_16BIT + (1ll << 32))
+
 UTRACY_INTERNAL UTRACY_INLINE
 int utracy_write_zone_begin(struct event evt) {
 #pragma pack(push, 1)
@@ -2253,11 +2256,48 @@ int utracy_write_zone_begin(struct event evt) {
 		long long timestamp;
 		long long unsigned srcloc;
 	};
+	struct network_zone_begin32 {
+		char unsigned type;
+		int unsigned timestamp;
+		long long unsigned srcloc;
+	};
+	struct network_zone_begin16 {
+		char unsigned type;
+		short unsigned timestamp;
+		long long unsigned srcloc;
+	};
+
 	_Static_assert(17 == sizeof(struct network_zone_begin), "incorrect size");
+	_Static_assert(13 == sizeof(struct network_zone_begin32), "incorrect size");
+	_Static_assert(11 == sizeof(struct network_zone_begin16), "incorrect size");
 #pragma pack(pop)
 
 	long long timestamp = evt.zone_begin.timestamp - utracy.data.cur_thread.timestamp;
 	utracy.data.cur_thread.timestamp = evt.zone_begin.timestamp;
+
+	if(utracy.protocol.version >= UTRACY_PROTOCOL_0_14_0 && timestamp >= 0) {
+		if(timestamp < UTRACY_PROTOCOL_OFFSET_16BIT) {
+			struct network_zone_begin16 msg = {
+				.type = 21,
+				.timestamp = (short unsigned) timestamp,
+				.srcloc = (uintptr_t) evt.zone_begin.srcloc
+			};
+
+			return utracy_write_packet(&msg, sizeof(msg));
+		}
+
+		if(timestamp < UTRACY_PROTOCOL_OFFSET_32BIT) {
+			struct network_zone_begin32 msg = {
+				.type = 20,
+				.timestamp = (int unsigned) (timestamp - UTRACY_PROTOCOL_OFFSET_16BIT),
+				.srcloc = (uintptr_t) evt.zone_begin.srcloc
+			};
+
+			return utracy_write_packet(&msg, sizeof(msg));
+		}
+
+		timestamp -= UTRACY_PROTOCOL_OFFSET_32BIT;
+	}
 
 	struct network_zone_begin msg = {
 		.type = utracy.protocol.zone_begin,
@@ -2280,11 +2320,44 @@ int utracy_write_zone_end(struct event evt) {
 		char unsigned type;
 		long long timestamp;
 	};
+	struct network_zone_end32 {
+		char unsigned type;
+		int unsigned timestamp;
+	};
+	struct network_zone_end16 {
+		char unsigned type;
+		short unsigned timestamp;
+	};
+
 	_Static_assert(9 == sizeof(struct network_zone_end), "incorrect size");
+	_Static_assert(5 == sizeof(struct network_zone_end32), "incorrect size");
+	_Static_assert(3 == sizeof(struct network_zone_end16), "incorrect size");
 #pragma pack(pop)
 
 	long long timestamp = evt.zone_end.timestamp - utracy.data.cur_thread.timestamp;
 	utracy.data.cur_thread.timestamp = evt.zone_end.timestamp;
+
+	if(utracy.protocol.version >= UTRACY_PROTOCOL_0_14_0 && timestamp >= 0) {
+		if(timestamp < UTRACY_PROTOCOL_OFFSET_16BIT) {
+			struct network_zone_end16 msg = {
+				.type = 27,
+				.timestamp = (short unsigned) timestamp
+			};
+
+			return utracy_write_packet(&msg, sizeof(msg));
+		}
+
+		if(timestamp < UTRACY_PROTOCOL_OFFSET_32BIT) {
+			struct network_zone_end32 msg = {
+				.type = 26,
+				.timestamp = (int unsigned) (timestamp - UTRACY_PROTOCOL_OFFSET_16BIT)
+			};
+
+			return utracy_write_packet(&msg, sizeof(msg));
+		}
+
+		timestamp -= UTRACY_PROTOCOL_OFFSET_32BIT;
+	}
 
 	struct network_zone_end msg = {
 		.type = utracy.protocol.zone_end,
